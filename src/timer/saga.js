@@ -1,5 +1,6 @@
-import { actionChannel, call, take, put, race } from 'redux-saga/effects'
+import { actionChannel, call, take, put, race, select } from 'redux-saga/effects'
 import * as actions from './actions'
+import {getIsOver} from './reducer'
 
 // wait :: Number -> Promise
 const wait = ms => (
@@ -15,11 +16,21 @@ function* runTimer() {
     while(true) {
       const winner = yield race({
         stopped: take('STOP'),
+        switched: take('FLIPTIMER'),
         tick: call(wait, 1000)
       })
 
-      if (!winner.stopped) {
-        yield put(actions.tick())
+      if (winner.switched) {
+      }
+      else if (!winner.stopped) {
+        const isOver = yield(select(getIsOver))
+        if (isOver) {
+          yield put(actions.stop())
+          break
+        }
+        else {
+          yield put(actions.tick())
+        }
       } else {
         break
       }
@@ -28,4 +39,3 @@ function* runTimer() {
 }
 
 export default runTimer
-

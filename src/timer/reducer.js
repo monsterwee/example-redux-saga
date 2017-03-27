@@ -2,11 +2,12 @@ import { duration } from 'moment'
 import { compose, multiply, not, prop } from 'ramda'
 
 /* Reducer */
-
+const timerduration = 180
 export default (
   state = {
     status: 'Stopped',
-    seconds: 0
+    seconds: timerduration,
+    direction: -1,
   }, action) => {
   switch (action.type) {
     case 'START':
@@ -14,9 +15,11 @@ export default (
     case 'STOP':
       return { ...state, status: 'Stopped' }
     case 'TICK':
-      return { ...state, seconds: state.seconds + 1 }
+      return { ...state, seconds: state.seconds + state.direction }
+    case 'FLIPTIMER' :
+      return { ...state, direction: -1*state.direction}
     case 'RESET':
-      return { ...state, seconds: 0 }
+      return { ...state, seconds: timerduration, direction: -1 }
     default:
       return state
   }
@@ -25,9 +28,12 @@ export default (
 /* Selectors */
 
 // getFormattedTime :: State -> String
-export const getFormattedTime = (state) => formatTime(state.seconds * 1000)
+export const getFormattedTime = (state) => {
+  return state.direction===-1 ? formatTime(state.seconds * 1000) : formatTime((timerduration-state.seconds) * 1000)
+}
 
 export const getStatus = (state) => state.status
+export const getIsOver = (state) => (state.seconds + state.direction < 0) || (state.seconds + state.direction > timerduration)
 
 /* Private helpers */
 
